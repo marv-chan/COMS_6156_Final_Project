@@ -47,6 +47,7 @@ def createPair(tokenA: address, tokenB: address) -> address:
     IUniswapV2Pair(newPairAddr).initialize(token0, token1)
     self.getPair[token0][token1] = newPairAddr
     self.getPair[token1][token0] = newPairAddr
+    self.numberOfPairs += 1
     log PairCreated(token0, token1, newPairAddr)
     return newPairAddr
 
