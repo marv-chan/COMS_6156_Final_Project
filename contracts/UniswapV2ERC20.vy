@@ -115,7 +115,7 @@ def permit(_owner: address, _spender: address, _value: uint256, _deadline: uint2
         )
     )
     self.nonces[_owner] = self.nonces[_owner] + 1
-    # understand what this is
+    # TODO: understand what this is
     recoveredAddress: address = ecrecover(digest, convert(_v, uint256), convert(_r, uint256), convert(_s, uint256))
     assert (recoveredAddress != ZERO_ADDRESS) and (recoveredAddress == _owner)
     self._approve(_owner, _spender, _value)

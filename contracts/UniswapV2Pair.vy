@@ -183,6 +183,7 @@ def initialize(_token0: address, _token1: address):
     # initialize for UniswapV2Pair
     self.token0 = _token0
     self.token1 = _token1
+    self.unlocked = 1
     self.factory = msg.sender # need this because __init__ is not called
 
 @external
@@ -235,7 +236,11 @@ def _mintFee(_reserve0: decimal, _reserve1: decimal) -> bool:
     return feeOn
 
 # called when liquidity provider adds liquidity to the pool
-# where does liquidity provider input how much liquidity he wants to inject?
+# reserves are how much this Uniswap V2 contract owns of each token
+# balances are how much the token contracts say this uniswapv2pair contract owns
+# amounts are how much balances are over reserves
+# the excess is what the liquidity provider deposited in and used to calulate amount of LP token 
+# the liquidity provider gets back
 @external
 def mint(to: address) -> uint256:
     assert self.unlocked == 1
@@ -301,12 +306,13 @@ def burn(to: address) -> (uint256, uint256):
     self.unlocked = 1
     return 0, 0
 
+# need to send amountIn first before amountOut can be taken out
 @external
 def swap(amount0Out: uint256, amount1Out: uint256, to: address):
     assert self.unlocked == 1
     self.unlocked = 0
 
-    assert amount0Out > 0 and amount1Out > 0
+    assert amount0Out > 0 or amount1Out > 0
     _reserve0: decimal = 0.0
     _reserve1: decimal = 0.0
     _blockTimestampLast: uint256 = 0
