@@ -28,7 +28,7 @@ def __init__(_feeToSetter: address, _masterCopy: address):
 
 @external
 def createPair(tokenA: address, tokenB: address) -> address:
-    assert tokenA != tokenB
+    assert tokenA != tokenB, "IDENTICAL_ADDRESSES"
     # need to convert first. cannot directly compare address in vyper
     token0: address = ZERO_ADDRESS
     token1: address = ZERO_ADDRESS
@@ -41,8 +41,8 @@ def createPair(tokenA: address, tokenB: address) -> address:
     else:
         token0 = tokenB
         token1 = tokenA
-    assert token0 != ZERO_ADDRESS
-    assert self.getPair[token0][token1] == ZERO_ADDRESS
+    assert token0 != ZERO_ADDRESS, "ZERO_ADDRESS"
+    assert self.getPair[token0][token1] == ZERO_ADDRESS, "PAIR_EXISTS"
     newPairAddr: address = create_forwarder_to(self.masterCopy)
     IUniswapV2Pair(newPairAddr).initialize(token0, token1)
     self.getPair[token0][token1] = newPairAddr

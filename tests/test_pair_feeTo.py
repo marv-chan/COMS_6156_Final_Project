@@ -1,6 +1,5 @@
 import pytest
 from brownie.convert import EthAddress
-from brownie import reverts
 
 @pytest.fixture
 def masterPairContract(UniswapV2Pair, accounts):
@@ -9,7 +8,9 @@ def masterPairContract(UniswapV2Pair, accounts):
 
 @pytest.fixture
 def factoryContract(UniswapV2Factory, masterPairContract, accounts):
-    yield UniswapV2Factory.deploy(accounts[0], masterPairContract, {'from': accounts[0]})
+    factory = UniswapV2Factory.deploy(accounts[0], masterPairContract, {'from': accounts[0]})
+    factory.setFeeTo(accounts[0], {'from': accounts[0]})
+    yield factory
 
 
 @pytest.fixture
@@ -40,7 +41,6 @@ def test_mint(newPairContract, token0, token1, accounts):
     token0.transfer(newPairContract, 10000, {'from': accounts[0]})
     token1.transfer(newPairContract, 10000, {'from': accounts[0]})
     tx = newPairContract.mint(accounts[0], {'from': accounts[0]})
-    # Mint in mint()
     assert len(tx.events) == 4
     # pair token has never been funded before, so send 1000 to 0x0
     assert tx.events[0]['receiver'] == EthAddress("0x0000000000000000000000000000000000000000")
@@ -55,6 +55,25 @@ def test_mint(newPairContract, token0, token1, accounts):
     assert tx.events[3]['sender'] == accounts[0]
     assert tx.events[3]['amount0'] == 10000
     assert tx.events[3]['amount1'] == 10000
+
+
+def test_mint2(newPairContract, token0, token1, accounts):
+    # fund pair contract
+    token0.transfer(newPairContract, 10000, {'from': accounts[0]})
+    token1.transfer(newPairContract, 10000, {'from': accounts[0]})
+    newPairContract.mint(accounts[0], {'from': accounts[0]})
+    token0.transfer(newPairContract, 10000, {'from': accounts[0]})
+    token1.transfer(newPairContract, 10000, {'from': accounts[0]})
+    tx = newPairContract.mint(accounts[0], {'from': accounts[0]})
+    # create more supply for liquidity provider
+    assert tx.events[0]['value'] == 10000
+    # Sync in _update()
+    assert tx.events[1]['reserve0'] == 20000 
+    assert tx.events[1]['reserve1'] == 20000
+    # Mint in mint()
+    assert tx.events[2]['amount0'] == 10000
+    assert tx.events[2]['amount1'] == 10000
+
 
 
 def test_burn(mintedPairContract, token0, token1, accounts):
@@ -87,7 +106,7 @@ def test_mintedPairContractVars(mintedPairContract, token0, token1):
     assert reserve1 == 10000
 
 
-def test_swap1(mintedPairContract, token0, token1, accounts):
+def test_swap(mintedPairContract, token0, token1, accounts):
     token1.transfer(mintedPairContract, 1000, {'from': accounts[1]})
     tx = mintedPairContract.swap(500, 0, accounts[1], {'from': accounts[1]})
     assert len(tx.events) == 3
@@ -102,34 +121,3 @@ def test_swap1(mintedPairContract, token0, token1, accounts):
     assert tx.events[2]['amount1In'] == 1000
     assert tx.events[2]['amount0Out'] == 500
     assert tx.events[2]['amount1Out'] == 0
-
-
-def test_swap1(mintedPairContract, token0, token1, accounts):
-    token0.transfer(mintedPairContract, 1000, {'from': accounts[1]})
-    tx = mintedPairContract.swap(0, 500, accounts[1], {'from': accounts[1]})
-    assert len(tx.events) == 3
-    # send withdraw to swapper
-    assert tx.events[0]['receiver'] == accounts[1]
-    assert tx.events[0]['value'] == 500
-    # Sync in _update()
-    assert tx.events[1]['reserve0'] == 11000 
-    assert tx.events[1]['reserve1'] == 9500
-    # Swap
-    assert tx.events[2]['amount0In'] == 1000
-    assert tx.events[2]['amount1In'] == 0
-    assert tx.events[2]['amount0Out'] == 0
-    assert tx.events[2]['amount1Out'] == 500
-
-
-def test_swap_amount01OutFail(mintedPairContract, accounts):
-    with reverts("INSUFFICIENT_OUTPUT_AMOUNT"):
-        mintedPairContract.swap(0, 0, accounts[1], {'from': accounts[1]})
-
-
-def test_swap_insufficientLiqudityFail(mintedPairContract, accounts):
-    with reverts("INSUFFICIENT_LIQUIDITY"):
-        mintedPairContract.swap(100000, 0, accounts[1], {'from': accounts[1]})
-
-def test_swap_invalidToFail(mintedPairContract, token0, token1, accounts):
-    with reverts("INVALID_TO"):
-        mintedPairContract.swap(1000, 0, token1.address, {'from': accounts[1]})

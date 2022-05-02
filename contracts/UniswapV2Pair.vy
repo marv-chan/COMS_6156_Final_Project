@@ -271,7 +271,7 @@ def mint(to: address) -> uint256:
         self.kLast = convert(self.reserve0, uint256) * convert(self.reserve1, uint256)
     log Mint(msg.sender, amount0, amount1)
     self.unlocked = 1
-    return 0
+    return liquidity
 
 # burn liquidity pool token and get back underlying tokens
 @external
@@ -304,24 +304,27 @@ def burn(to: address) -> (uint256, uint256):
         self.kLast = convert(self.reserve0, uint256) * convert(self.reserve1, uint256)
     log Mint(msg.sender, amount0, amount1)
     self.unlocked = 1
-    return 0, 0
+    return amount0, amount1
 
 # need to send amountIn first before amountOut can be taken out
+# reserves are how much this Uniswap V2 contract owns of each token
+# balances are how much the token contracts say this uniswapv2pair contract owns
+# amounts are how much balances are over reserves
 @external
 def swap(amount0Out: uint256, amount1Out: uint256, to: address):
     assert self.unlocked == 1
     self.unlocked = 0
 
-    assert amount0Out > 0 or amount1Out > 0
+    assert amount0Out > 0 or amount1Out > 0, "INSUFFICIENT_OUTPUT_AMOUNT"
     _reserve0: decimal = 0.0
     _reserve1: decimal = 0.0
     _blockTimestampLast: uint256 = 0
     (_reserve0, _reserve1, _blockTimestampLast) = IUniswapV2Pair(self).getReserves()
-    assert amount0Out < convert(_reserve0, uint256) and amount1Out < convert(_reserve1, uint256)
+    assert amount0Out < convert(_reserve0, uint256) and amount1Out < convert(_reserve1, uint256), "INSUFFICIENT_LIQUIDITY"
 
     _token0: address = self.token0
     _token1: address= self.token1
-    assert to != _token0 and to!= _token1
+    assert to != _token0 and to!= _token1, "INVALID_TO"
     if amount0Out > 0:
         self._safeTransfer(_token0, to, amount0Out)
     if amount1Out > 0:

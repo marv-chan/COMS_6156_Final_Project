@@ -1,6 +1,7 @@
 import pytest
 from brownie.network.contract import Contract
 from brownie.convert import EthAddress
+from brownie import reverts
 from brownie import UniswapV2Pair
 
 @pytest.fixture
@@ -23,3 +24,30 @@ def test_createPair(factoryContract, token0, token1, accounts, fn_isolation):
     assert factoryContract.address == pair.factory()
     # to test that __init__ is not run
     # assert pair.factory() == EthAddress("0x0000000000000000000000000000000000000000")
+
+def test_createPair_zeroAddressFail(factoryContract, token0, token1, accounts):
+    with reverts("ZERO_ADDRESS"):
+        factoryContract.createPair(EthAddress("0x0000000000000000000000000000000000000000"), token1)
+
+def test_createPair_duplicateFail(factoryContract, token0, token1, accounts):
+    factoryContract.createPair(token0, token1)
+    with reverts("PAIR_EXISTS"):
+        factoryContract.createPair(token1, token0)
+
+def test_createPair_identicalFail(factoryContract, token0, token1, accounts):
+    with reverts("IDENTICAL_ADDRESSES"):
+        factoryContract.createPair(token0, token0)
+
+def test_setter(factoryContract, accounts):
+    factoryContract.setFeeToSetter(accounts[1], {'from': accounts[0]})
+    factoryContract.setFeeTo(accounts[0], {'from': accounts[1]})
+    assert factoryContract.feeTo() == accounts[0]
+    assert factoryContract.feeToSetter() == accounts[1]
+
+def test_setFeeToSetter_fail(factoryContract, accounts):
+    with reverts():
+        factoryContract.setFeeToSetter(accounts[1], {'from': accounts[1]})
+
+def test_feeTo_fail(factoryContract, accounts):
+    with reverts():
+        factoryContract.setFeeTo(accounts[1], {'from': accounts[1]})
