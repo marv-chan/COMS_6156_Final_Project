@@ -1,15 +1,15 @@
 # COMS6156 Final Project
 # Uniswap V2 in Vyper
 
-This project is a reimplementation of Uniswap V2 in Vyper. The purpose of this project is to document and understand the difficulties of learning Vyper. It is also to examine the differences between Solidity and Vyper, and what the benefits and drawbacks of those differences are. 
+This project is a reimplementation of Uniswap V2 in Vyper. The purpose of this project is to document and understand the difficulties of learning Vyper. It is also to examine the differences between Solidity and Vyper, and what the benefits and drawbacks of those differences are. Results can be found in assignments/Final Project.pdf
 
 ## Structure
 
-Deliverables: assignments
+Deliverables: assignments (Initial project proposal is not included because a brand new project was proposed in the revised proposal)
 
 Uniswap V2 in Vyper: contracts
 
-Tests: tests
+Tests for Uniswap V2 in Vyper: tests
 
 ## Usage
 
@@ -20,6 +20,8 @@ Install vyper
 ```
 pip install vyper
 ```
+
+More info can be found at https://vyper.readthedocs.io/en/stable/installing-vyper.html
 
 Install brownie
 
@@ -34,3 +36,5 @@ pipx install eth-brownie
 ```
 brownie test --coverage
 ```
+
+More info can be found at https://eth-brownie.readthedocs.io/en/stable/install.html
