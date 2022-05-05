@@ -16,17 +16,6 @@ event Transfer:
     receiver: indexed(address)
     value: uint256
 
-# name: public(String[32])
-# symbol: public(String[32])
-# decimals: public(uint8)
-
-# balanceOf: public(HashMap[address, uint256])
-# allowance: public(HashMap[address, HashMap[address, uint256]])
-# totalSupply: public(uint256)
-
-# DOMAIN_SEPARATOR: public(bytes32)
-# PERMIT_TYPEHASH: constant(bytes32) = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9
-
 @external
 @pure
 def name() -> String[32]:

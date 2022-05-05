@@ -193,7 +193,6 @@ def getReserves() -> (decimal, decimal, uint256):
 
 @internal
 def _safeTransfer(token: address, to: address, _value: uint256):
-    # TODO: uniswap v2 uses abi not used here
     # uniswap returns 2 values when transfer() is called, but only 1 is returned in Token.vy
     success: bool = ERC20(token).transfer(to, _value)
     assert success
@@ -201,7 +200,6 @@ def _safeTransfer(token: address, to: address, _value: uint256):
 
 @internal
 def _update(balance0: uint256, balance1: uint256, _reserve0: decimal, _reserve1: decimal):
-    # TODO: is assert required here? don't think so because of built in overflow check
     blockTimestamp: uint256 = block.timestamp
     # If the time elapsed is not zero, it means we are the first exchange transaction on this block. 
     # In that case, we need to update the cost accumulators.
@@ -343,7 +341,6 @@ def swap(amount0Out: uint256, amount1Out: uint256, to: address):
     assert amount0In > 0 or amount1In > 0
     balance0Adjusted: uint256 = (balance0 * 1000) - (amount0In * 3)
     balance1Adjusted: uint256 = (balance1 * 1000) - (amount1In * 3)
-    # TODO convert before multiply or multipy before convert?
     assert balance0Adjusted * balance1Adjusted >= convert(_reserve0, uint256) * convert(_reserve1, uint256) * 1000 * 1000
     
     self._update(balance0, balance1, _reserve0, _reserve1)
