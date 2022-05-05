@@ -32,9 +32,9 @@ pipx ensurepath
 pipx install eth-brownie
 ```
 
+More info can be found at https://eth-brownie.readthedocs.io/en/stable/install.html
+
 ### Run tests
 ```
 brownie test --coverage
 ```
-
-More info can be found at https://eth-brownie.readthedocs.io/en/stable/install.html
